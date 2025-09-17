@@ -370,8 +370,8 @@ print(f"✓ Total de partidas individuales disponibles: {len(partidas_df):,}")
 # Seleccionar SOLO depósitos sin impuestos para máxima precisión
 todos_sin_impuestos = depositos_df[(depositos_df['iva'] == 0) & (depositos_df['ieps'] == 0)]
 
-# Seleccionar aleatoriamente 1000 depósitos sin impuestos (máximo disponible)
-num_depositos = min(1000, len(todos_sin_impuestos))
+# Seleccionar aleatoriamente 100 depósitos sin impuestos (máximo disponible)
+num_depositos = min(100, len(todos_sin_impuestos))
 depositos_a_conciliar = todos_sin_impuestos.sample(n=num_depositos, random_state=42).sort_values(by='fecha')
 
 print(f"🎯 Procesando {len(depositos_a_conciliar)} depósitos SIN IMPUESTOS (TOLERANCIA ESTRICTA ±1 PESO)")
@@ -563,12 +563,42 @@ if results_list:
     # 1. Generar ventas_asignadas.csv
     if all_detailed_products:
         ventas_asignadas = []
+        
+        # Diccionario para rastrear folios ya usados por depósito y folios disponibles por depósito
+        folios_por_deposito = {}  # {deposit_id: folio_asignado}
+        folios_disponibles_por_deposito = {}  # {deposit_id: [lista_de_folios_únicos_del_depósito]}
+        
+        # Primer pase: recopilar todos los folios únicos por depósito
         for product in all_detailed_products:
+            deposit_id = product['deposit_id_conciliado']
+            folio_original = product['Folio_Venta']
+            
+            if deposit_id not in folios_disponibles_por_deposito:
+                folios_disponibles_por_deposito[deposit_id] = []
+            
+            # Agregar folio a la lista si no está ya
+            if folio_original not in folios_disponibles_por_deposito[deposit_id]:
+                folios_disponibles_por_deposito[deposit_id].append(folio_original)
+        
+        # Segundo pase: asignar folios consolidados
+        for product in all_detailed_products:
+            deposit_id = product['deposit_id_conciliado']
+            folio_original = product['Folio_Venta']
+            
+            # Si este depósito ya tiene un folio asignado, usar ese
+            if deposit_id in folios_por_deposito:
+                folio_a_usar = folios_por_deposito[deposit_id]
+            else:
+                # Tomar el primer folio de los disponibles en este depósito
+                folio_a_usar = folios_disponibles_por_deposito[deposit_id][0]
+                folios_por_deposito[deposit_id] = folio_a_usar
+            
             venta_asignada = {
                 'ID_PVenta': product['ID_PVenta'],  # ID único de partida
-                'FolioVenta': product['Folio_Venta'],
+                'FolioVenta': folio_a_usar,  # Folio consolidado (uno de los existentes en el depósito)
+                'FolioOriginal': folio_original,  # Mantener referencia del folio original
                 'IDDeposito': product['deposit_id_conciliado'],
-                'Total': product['total'],  # CAMBIO: Usar total en lugar de subtotal
+                'Total': product['total'],
                 'IVA': product['iva'],
                 'IEPS': product['ieps']
             }
@@ -577,6 +607,8 @@ if results_list:
         ventas_asignadas_df = pd.DataFrame(ventas_asignadas)
         ventas_asignadas_df.to_csv("ventas_asignadas.csv", index=False)
         print(f"\n💾 Archivo generado: 'ventas_asignadas.csv' ({len(ventas_asignadas_df)} registros)")
+        print(f"🔄 Folios consolidados por depósito: {len(folios_por_deposito)} depósitos únicos")
+        print(f"📋 Cada depósito usa uno de sus propios folios para evitar duplicados")
     
     # 2. Generar ventas_no_utilizadas.csv
     # Obtener todas las partidas únicas del archivo de tickets
