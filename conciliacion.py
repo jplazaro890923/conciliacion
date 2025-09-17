@@ -565,6 +565,7 @@ if results_list:
         ventas_asignadas = []
         for product in all_detailed_products:
             venta_asignada = {
+                'ID_PVenta': product['ID_PVenta'],  # ID único de partida
                 'FolioVenta': product['Folio_Venta'],
                 'IDDeposito': product['deposit_id_conciliado'],
                 'Total': product['total'],  # CAMBIO: Usar total en lugar de subtotal
@@ -587,7 +588,11 @@ if results_list:
         # Obtener los folios de las partidas no utilizadas
         partidas_no_usadas_df = partidas_df[partidas_df['ID_PVenta'].isin(partidas_no_utilizadas)]
         ventas_no_utilizadas_df = pd.DataFrame({
-            'FolioVenta': partidas_no_usadas_df['Folio_Venta']
+            'ID_PVenta': partidas_no_usadas_df['ID_PVenta'],
+            'FolioVenta': partidas_no_usadas_df['Folio_Venta'],
+            'Total': partidas_no_usadas_df['total'],
+            'IVA': partidas_no_usadas_df['iva'],
+            'IEPS': partidas_no_usadas_df['ieps']
         })
         ventas_no_utilizadas_df.to_csv("ventas_no_utilizadas.csv", index=False)
         print(f"💾 Archivo generado: 'ventas_no_utilizadas.csv' ({len(ventas_no_utilizadas_df)} registros)")
