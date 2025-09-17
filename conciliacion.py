@@ -370,8 +370,8 @@ print(f"✓ Total de partidas individuales disponibles: {len(partidas_df):,}")
 # Seleccionar SOLO depósitos sin impuestos para máxima precisión
 todos_sin_impuestos = depositos_df[(depositos_df['iva'] == 0) & (depositos_df['ieps'] == 0)]
 
-# Seleccionar aleatoriamente 100 depósitos sin impuestos (máximo disponible)
-num_depositos = min(100, len(todos_sin_impuestos))
+# Seleccionar aleatoriamente 1000 depósitos sin impuestos (máximo disponible)
+num_depositos = min(1000, len(todos_sin_impuestos))
 depositos_a_conciliar = todos_sin_impuestos.sample(n=num_depositos, random_state=42).sort_values(by='fecha')
 
 print(f"🎯 Procesando {len(depositos_a_conciliar)} depósitos SIN IMPUESTOS (TOLERANCIA ESTRICTA ±1 PESO)")
