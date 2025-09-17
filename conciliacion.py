@@ -366,13 +366,12 @@ prep_end = time.time()
 print(f"✓ Estructura preparada en {prep_end - prep_start:.2f} segundos")
 print(f"✓ Total de partidas individuales disponibles: {len(partidas_df):,}")
 
-# PROCESANDO 100 DEPÓSITOS ALEATORIOS (SOLO SIN IMPUESTOS - MÁXIMA PRECISIÓN)
-# Seleccionar SOLO depósitos sin impuestos para máxima precisión
+# PROCESANDO TODOS LOS DEPÓSITOS SIN IMPUESTOS (MÁXIMA PRECISIÓN)
+# Seleccionar TODOS los depósitos sin impuestos para máxima precisión
 todos_sin_impuestos = depositos_df[(depositos_df['iva'] == 0) & (depositos_df['ieps'] == 0)]
 
-# Seleccionar aleatoriamente 1000 depósitos sin impuestos (máximo disponible)
-num_depositos = min(1000, len(todos_sin_impuestos))
-depositos_a_conciliar = todos_sin_impuestos.sample(n=num_depositos, random_state=42).sort_values(by='fecha')
+# Procesar TODOS los depósitos sin impuestos disponibles
+depositos_a_conciliar = todos_sin_impuestos.sort_values(by='fecha')
 
 print(f"🎯 Procesando {len(depositos_a_conciliar)} depósitos SIN IMPUESTOS (TOLERANCIA ESTRICTA ±1 PESO)")
 print(f"   📊 Total de depósitos sin impuestos disponibles: {len(todos_sin_impuestos)}")
