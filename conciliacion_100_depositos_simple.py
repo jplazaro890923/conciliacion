@@ -92,14 +92,14 @@ def cargar_datos():
     
     return ventas_dict, folios_dict, ventas_por_fecha, depositos
 
-def seleccionar_depositos_aleatorios(depositos, n=100):  # Cambiado a 100 depósitos
+def seleccionar_todos_los_depositos(depositos):
     """
-    Selecciona n depósitos aleatorios que tienen impuestos.
+    Selecciona TODOS los depósitos que tienen impuestos.
     """
     depositos_con_impuestos = depositos[
         (depositos['IVA'] > 0) | (depositos['IEPS'] > 0)
     ].copy()
-    return depositos_con_impuestos.sample(n=min(n, len(depositos_con_impuestos)))
+    return depositos_con_impuestos
 
 def encontrar_combinacion(ventas_candidatas, deposito, partidas_usadas, folios_usados_global):
     """
@@ -312,15 +312,15 @@ def main():
     ventas_dict, folios_dict, ventas_por_fecha, depositos = cargar_datos()
     print("Datos cargados")
     
-    # Seleccionar 100 depósitos aleatorios con impuestos
-    depositos_prueba = seleccionar_depositos_aleatorios(depositos, n=100)  # Cambiado a 100
-    print(f"Depósitos seleccionados: {len(depositos_prueba)}\n")
+    # Seleccionar TODOS los depósitos con impuestos
+    depositos_prueba = seleccionar_todos_los_depositos(depositos)
+    print(f"Depósitos seleccionados: {len(depositos_prueba)} (TODOS los depósitos con impuestos)\n")
     
     # Realizar conciliación
     resultados = conciliar_depositos(ventas_dict, folios_dict, ventas_por_fecha, depositos_prueba)
     
     # Guardar resultados
-    resultados.to_csv('resumen_conciliacion_100_depositos_simple.csv', index=False)
+    resultados.to_csv('resumen_conciliacion_todos_depositos_simple.csv', index=False)
     print(f"\nProceso completado. Se encontraron {len(resultados)} coincidencias.")
 
 if __name__ == '__main__':
